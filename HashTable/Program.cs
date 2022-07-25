@@ -27,18 +27,18 @@ public sealed class MyHashTable
         public string Value { get; set; }
         public Node? Next { get; set; }
     }
-    private const int capacity = Int32.MaxValue / 2;
+    private const int capacity = 4801;
     private Node?[] storage = new Node[capacity];
 
     private int GetBasket(string key)
     {
-        int hash = key.GetHashCode();
-        return ((hash > 0) ? hash : capacity + hash) % capacity;
+        int hash = Math.Abs(key.GetHashCode()) % capacity;
+        return hash;
     }
     private Node FindOrLast(int basket, string key)
     {
         var node = storage[basket];
-        while (node.Key != key || node.Next is not null)
+        while (node.Key != key && node.Next is not null)
         {
             node = node.Next;
         }
@@ -46,21 +46,25 @@ public sealed class MyHashTable
     }
     private void PutToBasket(int basket, string key, string value)
     {
-        if (storage[basket] is not null)
+        if (storage[basket] is null)
         {
-            var node = FindOrLast(basket, key);
-            if (node.Key == key)
-            {
-                node.Value = value;
-                return;
-            }
-            if (node.Next is null)
-            {
-                node.Next = new Node { Key = key, Value = value, Next = null };
-            }
+
+            storage[basket] = new Node { Key = key, Value = value, Next = null };
             return;
         }
-        storage[basket] = new Node { Key = key, Value = value, Next = null };
+
+
+        var node = FindOrLast(basket, key);
+        if (node.Key == key)
+        {
+            node.Value = value;
+            return;
+        }
+        if (node.Next is null)
+        {
+            node.Next = new Node { Key = key, Value = value, Next = null };
+        }
+
     }
     private string GetFromBasket(int basket, string key)
     {
@@ -81,7 +85,7 @@ public sealed class MyHashTable
         }
         if (node.Key == key)
         {
-            storage[basket] = null;
+            storage[basket] = node.Next;
             return node.Value;
         }
         if (node.Next?.Key == key)
