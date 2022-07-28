@@ -1,4 +1,12 @@
-﻿using System;
+﻿// https://contest.yandex.ru/contest/24414/run-report/69515501/
+
+
+/* 
+Заполнение словаря выполняется за O(n) где n -- количество слов во всех документах 
+Поиск релевантных документов в худшем случае за О(nk) где n -- количество слов в запросе, k -- количество документов. 
+*/
+// FIX Не учитывается кол-во запросов. Нет четкого разделения на оценку скорости и памяти, задача оформлена совсем не по шаблону.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,9 +30,10 @@ class Program
             }
         }
         var requestsCount = int.Parse(Console.ReadLine()!);
+
         for (int i = 0; i < requestsCount; i++)
         {
-            var indexScoreDict = new Dictionary<int, int>();
+            var indexScoreArray = new int[documentsCount];
 
             var inputWords = new HashSet<string>(Console.ReadLine()!.Split()); // This constructor is an O(n) operation, where n is the number of elements in the collection parameter
             foreach (var item in inputWords)
@@ -33,16 +42,37 @@ class Program
                 {
                     foreach (var storageItem in storage[item])
                     {
-                        if (!indexScoreDict.TryAdd(storageItem.Key, storageItem.Value))
-                        {
-                            indexScoreDict[storageItem.Key] += storageItem.Value;
-                        }
+
+                        indexScoreArray[storageItem.Key] += storageItem.Value;
+
                     }
 
                 }
             }
 
-            Console.WriteLine(string.Join(" ", indexScoreDict.OrderByDescending(i => i.Value).ThenBy(i => i.Key).Take(5).Select(i => i.Key + 1)));
+            var maxIndexes = new List<int>();
+            for (var j = 0; j < 5; j++)
+            {
+                int maxValue = -5;
+                int? maxIndex = null;
+                for (var k = 0; k < documentsCount; k++)
+                {
+                    if (indexScoreArray[k] > maxValue && indexScoreArray[k] > 0)
+                    {
+                        maxValue = indexScoreArray[k];
+                        maxIndex = k;
+                    }
+                }
+                if (maxIndex is not null)
+                {
+                    maxIndexes.Add((int)maxIndex + 1);
+                    indexScoreArray[(int)maxIndex] = 0;
+                    continue;
+                }
+                break;
+
+            }
+            Console.WriteLine(string.Join(" ", maxIndexes));
         }
     }
 }
